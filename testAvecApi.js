@@ -5,7 +5,7 @@ import axios from 'axios'; // Importer Axios pour les appels API
 // Initialisation de la connexion Socket.IO
 const socket = io('http://10.3.70.5:8080');
 
-const Test4 = () => {
+const DeroulementDuQuiz = () => {
   const [role, setRole] = useState(null); // Animateur ou Participant
   const [quizId, setQuizId] = useState(null); // ID du Quiz
   const [currentQuestion, setCurrentQuestion] = useState(null); // Question actuelle
@@ -19,7 +19,7 @@ const Test4 = () => {
     setRole(selectedRole);
   };
 
-  // Rejoindre un quiz spécifique
+  // Cette fonction doit être dans la page de choix du quiz
   const joinQuiz = (id) => {
     setQuizId(id);
     socket.emit('joinQuiz', id);
@@ -36,8 +36,22 @@ const Test4 = () => {
     }
   };
 
+
+  const fetchStatistique = async (quizId, questionId) => {
+    try {
+      const response = await axios.get(`http://10.3.70.5:3001/question/quizNumber/Satistique`);
+      return response.data; // Supposons que l'API renvoie un objet JSON de type { question, options }
+    } catch (error) {
+      console.error('Erreur lors de la récupération de la question :', error);
+      return null;
+    }
+  };
+
+
+  
+
   // Démarrer le quiz
-  const startQuiz = async () => {
+  const commencerQuiz = async () => {
     const question = await fetchQuestion(quizId, currentQuestionId);
     if (question) {
       setCurrentQuestion(question); // Mettre à jour la question actuelle pour l'animateur
@@ -45,8 +59,9 @@ const Test4 = () => {
     }
   };
 
-  // Passer à la question suivante
-  const nextQuestion = async () => {
+
+  // Aficher  la question suivante
+  const afficherQuestionSuivante = async () => {
     const nextId = currentQuestionId + 1; // Incrémenter l'ID de la question
     const question = await fetchQuestion(quizId, nextId);
     if (question) {
@@ -59,10 +74,26 @@ const Test4 = () => {
     }
   };
 
+
+  //Afficher les données des Statistiques 
+  const afficherStatistique = async () => {
+    const nextId = currentQuestionId + 1; // Incrémenter l'ID de la question
+    const question = await fetchStatistique(quizId, nextId);
+    if (question) {
+      setCurrentQuestion(question); // Mettre à jour la question actuelle
+      setCurrentQuestionId(nextId); // Mettre à jour l'ID de la question
+      setShowCorrectAnswer(false); // Réinitialiser l'affichage de la réponse correcte
+      socket.emit('nextQuestion', { quizId, question }); // Diffuser la question aux participants
+    } else {
+      console.log('Aucune autre question disponible.');
+    }
+  };
+
+
   // Afficher la bonne réponse
-  const showAnswer = () => {
+  const afficherReponse = () => {
     setShowCorrectAnswer(true); // Activer l'affichage de la bonne réponse
-    socket.emit('showAnswer', { quizId });
+    socket.emit('showAnswer', { quizId }); // Demander au serveur de diffuser un événement pour déclencher l'affichage
   };
 
   // Arrêter le quiz
@@ -85,13 +116,16 @@ const Test4 = () => {
       setCurrentQuestion(data.question);
     });
 
-    socket.on('showAnswer', () => {
-      setShowCorrectAnswer(true); // Activer l'affichage côté participant
-    });
-
     socket.on('quizEnded', () => {
       setQuizEnded(true);
     });
+
+    socket.on('showAnswer', (data) => {
+      if (data === true) {
+        // Lorsque le serveur envoie `true`, activer l'affichage des bonnes réponses
+        setShowCorrectAnswer(true);
+      }
+    })
 
     return () => {
       socket.off('joinedQuiz');
@@ -129,9 +163,9 @@ const Test4 = () => {
         {quizId && (
           <div>
             <h2>Contrôle du Quiz</h2>
-            <button onClick={startQuiz}>Démarrer le Quiz</button>
-            <button onClick={nextQuestion}>Passer à la Question Suivante</button>
-            <button onClick={showAnswer}>Afficher la Bonne Réponse</button>
+            <button onClick={commencerQuiz}>Démarrer le Quiz</button>
+            <button onClick={afficherQuestionSuivante}>Passer à la Question Suivante</button>
+            <button onClick={afficherReponse}>Afficher la Bonne Réponse</button>
             <button onClick={endQuiz}>Terminer le Quiz</button>
 
             {currentQuestion && (
@@ -191,4 +225,4 @@ const Test4 = () => {
   return null;
 };
 
-export default Test4;
+export default DeroulementDuQuiz;
