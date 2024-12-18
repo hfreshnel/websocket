@@ -60,6 +60,17 @@ io.on('connection', (socket) => {
     }
   });
 
+
+  socket.on('showStatistique', ({ quizId, statistiques }) => {
+      // Diffuser la données des states suivante uniquement à la room correspondante
+      io.to(quizId).emit('showStatistique', {
+        type: 'stats',
+        data: statistiques,
+      });
+    
+  });
+
+
   // Afficher la bonne réponse
   socket.on('showAnswer', ({ quizId }) => {
     if (quizzes[quizId] && quizzes[quizId].started) {
