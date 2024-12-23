@@ -10,7 +10,7 @@ const io = socketIo(server, {
     origin: [
       "http://localhost:3000",  // Frontend local
       "http://127.0.0.1:3000",  // Alternative locale
-      "http://10.3.70.5:3000",  // Réseau local
+      "http://10.188.185.19:3000",  // Réseau local
     ],
     methods: ["GET", "POST"],
   },
@@ -60,7 +60,7 @@ io.on('connection', (socket) => {
     }
   });
 
-
+ //Passer les données des statistiques à tous les utilisateurs pour un topic donné
   socket.on('showStatistique', ({ quizId, statistiques }) => {
       // Diffuser la données des states suivante uniquement à la room correspondante
       io.to(quizId).emit('showStatistique', {
@@ -69,6 +69,16 @@ io.on('connection', (socket) => {
       });
     
   });
+
+//Passer les données des classementsà tous les utilisateurs pour un topic donné
+  socket.on('showClassement', ({ quizId, classement }) => {
+    // Diffuser la données des states suivante uniquement à la room correspondante
+    io.to(quizId).emit('showClassement', {
+      type: 'classement',
+      data: classement,
+    });
+  
+});
 
 
   // Afficher la bonne réponse
@@ -89,8 +99,6 @@ io.on('connection', (socket) => {
       // Diffuser la fin du quiz uniquement à la room correspondante
       io.to(quizId).emit('quizEnded', { message: `Le quiz ${quizId} est terminé !` });
 
-      // Optionnel : Supprimer l'état du quiz pour libérer de la mémoire
-      delete quizzes[quizId];
     }
   });
 
