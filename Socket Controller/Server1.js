@@ -24,7 +24,7 @@ io.on('connection', (socket) => {
   console.log(`Client connecté : ${socket.id}`);
 
   // Joindre un utilisateur à une room correspondant à un quiz
-  socket.on('joinQuiz', (quizId) => {
+  socket.on('joinQuiz', ({quizId}) => {
     socket.join(quizId);
     console.log(`Client ${socket.id} a rejoint la room du quiz ${quizId}`);
     
@@ -58,6 +58,8 @@ io.on('connection', (socket) => {
         data: nextQuestion,
       });
     }
+    console.log('Quiz ID reçu:', quizId); // Affiche 1
+    console.log('Question reçue:', nextQuestion);
   });
 
  //Passer les données des statistiques à tous les utilisateurs pour un topic donné
@@ -67,7 +69,7 @@ io.on('connection', (socket) => {
         type: 'stats',
         data: statistiques,
       });
-    
+    console.log('Statistiques reçues:', statistiques);
   });
 
 //Passer les données des classementsà tous les utilisateurs pour un topic donné
@@ -87,11 +89,12 @@ io.on('connection', (socket) => {
       // Diffuser un événement avec la valeur true pour déclencher l'affichage de la bonne réponse
       io.to(quizId).emit('showAnswer', true);
     }
+    console.log('Quiz ID reçu:', quizId); 
   });
 
   
   // Terminer le quiz
-  socket.on('endQuiz', (quizId) => {
+  socket.on('endQuiz', ({quizId}) => {
     if (quizzes[quizId]) {
       quizzes[quizId].started = false;
       console.log(`Quiz ${quizId} terminé.`);
@@ -100,6 +103,7 @@ io.on('connection', (socket) => {
       io.to(quizId).emit('quizEnded', { message: `Le quiz ${quizId} est terminé !` });
 
     }
+    console.log('Quiz ID reçu:', quizId);
   });
 
   // Gérer la déconnexion d'un participant
